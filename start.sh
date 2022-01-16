@@ -70,6 +70,12 @@ case "$COMMAND" in
     (qemuType $SETUP_PW; sleep 1) | qemuMonitor
     SSH_PORT=$SSH_PORT  SETUP_PASSWORD=$SETUP_PW ./copy-ssh-id.sh
     ;;
+  --install)
+    scp -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -P $SSH_PORT \
+          uefi-install.sh configuration.nix nixos@localhost:
+    ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -p $SSH_PORT \
+      nixos@localhost "sudo bash ./uefi-install.sh"
+    ;;
   --ssh)
     ssh "${SSH_OPTS[@]}"
     ;;
