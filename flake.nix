@@ -9,12 +9,17 @@
     flake-compat.flake = false;
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }: {
+  outputs = inputs@{ self, nixpkgs, flake-utils, ... }: {
   } // flake-utils.lib.eachDefaultSystem (system:
   let pkgs = nixpkgs.legacyPackages.${system};
   in rec {
+    iso = pkgs.fetchurl {
+      url = "https://channels.nixos.org/nixos-21.11/latest-nixos-minimal-x86_64-linux.iso";
+      sha256 = "GMZK+F37p3/i9MxZCYlEu0gTx4qdtblGN2uSnRHjKwE=";
+    };
     devShell = pkgs.mkShell {
       buildInputs = with pkgs; [qemu qemu-utils];
+      NIXOS_ISO=iso;
     };
   });
 }
