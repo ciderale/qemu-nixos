@@ -20,6 +20,7 @@
     devShell = pkgs.mkShell {
       buildInputs = with pkgs; [qemu qemu-utils socat expect];
       NIXOS_ISO=iso;
+      OVMF=nixpkgs.legacyPackages.x86_64-linux.OVMFFull.fd;
     };
   });
 }

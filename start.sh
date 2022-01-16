@@ -10,14 +10,30 @@ args=(
   -m 16G -smp 4
   # accelleration
   -machine type=q35,accel=hvf -cpu Nehalem
+  -vga virtio
+  -monitor unix:$QEMU_MONITOR_SOCKET,server,nowait
   # networking
   -device e1000,netdev=net0
   -netdev user,id=net0,hostfwd=tcp::$SSH_PORT-:22
+
+  ## Legacy BIOS Mode
   # boot device
-  -cdrom $NIXOS_ISO
+  #-cdrom $NIXOS_ISO # booting with BIOS mode
   # main disk
-  -hda $DISK_IMG
-  -monitor unix:$QEMU_MONITOR_SOCKET,server,nowait
+  #-hda $DISK_IMG
+
+  ## UEFI boot
+  # https://unix.stackexchange.com/questions/530674/qemu-doesnt-respect-the-boot-order-when-booting-with-uefi-ovmf
+  -drive if=pflash,format=raw,readonly=on,file=$OVMF/FV/OVMF.fd
+  # boot cdrom
+  -drive id=cd1,file=${NIXOS_ISO},format=raw,if=none,media=cdrom,readonly=on
+  #-device ide-cd,drive=cd1,id=cd1,bootindex=1
+  # https://wiki.gentoo.org/wiki/QEMU/Options#Hard_drive
+  # using SATA/AHCI
+  -device ahci,id=achi0
+  -device ide-cd,id=cd1,bus=achi0.0,drive=cd1,bootindex=1
+  -drive id=hd1,file=$DISK_IMG,format=qcow2,media=disk,if=none
+  -device ide-hd,id=hd1,bus=achi0.1,drive=hd1,bootindex=0
 )
 
 function start() {
