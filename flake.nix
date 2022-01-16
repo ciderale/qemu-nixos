@@ -18,7 +18,7 @@
       sha256 = "GMZK+F37p3/i9MxZCYlEu0gTx4qdtblGN2uSnRHjKwE=";
     };
     devShell = pkgs.mkShell {
-      buildInputs = with pkgs; [qemu qemu-utils];
+      buildInputs = with pkgs; [qemu qemu-utils socat expect];
       NIXOS_ISO=iso;
     };
   });
