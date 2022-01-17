@@ -58,11 +58,15 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  # users.users.jane = {
-  #   isNormalUser = true;
-  #   extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-  # };
-  users.users.root.initialPassword = "asdf";
+  users.users.nixos = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" "docker" ]; # Enable ‘sudo’ for the user.
+    initialPassword = "nixos";
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGyy4BIN8rdI63IWBkfqZNuP9FQnxVFV9fEPs0OwPlcb ale@bigfoot"
+    ];
+  };
+  users.users.root.initialPassword = "password";
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
