@@ -5,10 +5,17 @@ pkgs: config: let
       set password $env(PASSWORD)
       spawn ssh-copy-id -F ${cfg} "$host"; expect Password: { send "$password\n"; exp_continue; exit }
   '';
+  waitForSsh = pkgs.writeShellScriptBin "waitForSsh" ''
+    DELAY=''${2:-1}
+    while ! ssh -F ${cfg} -o PubkeyAuthentication=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ChallengeResponseAuthentication=no "$@" 2>&1 | grep "Permission denied"; do
+      echo -n ".";
+      sleep $DELAY;
+    done
+  '';
 in
   pkgs.symlinkJoin {
     name = "ssh-vm";
-    paths = [ pkgs.openssh ];
+    paths = [ pkgs.openssh waitForSsh ];
     buildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       for b in ssh ssh-copy-id scp; do

@@ -70,7 +70,16 @@ case "$COMMAND" in
     scp uefi-install.sh configuration.nix nixos@vm:
     ssh nixos@vm "sudo bash ./uefi-install.sh"
     ;;
-  --ssh)
-    ssh root@vm
+
+  --fresh-vm)
+    rm disk.img
+    $0 --mkimg
+    $0 --start
+    ;;
+
+  --full-setup)
+    waitForSsh vm
+    $0 --set-ssh
+    $0 --install
     ;;
 esac
