@@ -2,10 +2,6 @@
 DISK_IMG=./disk.img
 SSH_PORT=2222
 QEMU_MONITOR_SOCKET=qemu-monitor-socket
-SETUP_PW=asdf
-SSH_OPTS=(
-  -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -p $SSH_PORT nixos@localhost
-)
 args=(
   -m 16G -smp 4
   # accelleration
@@ -65,18 +61,17 @@ case "$COMMAND" in
     start
     ;;
   --set-ssh)
+    SETUP_PW=asdf
     (qemuType "passwd"; sleep 1) | qemuMonitor
     (qemuType $SETUP_PW; sleep 1) | qemuMonitor
     (qemuType $SETUP_PW; sleep 1) | qemuMonitor
-    SSH_PORT=$SSH_PORT  SETUP_PASSWORD=$SETUP_PW ./copy-ssh-id.sh
+    SETUP_PASSWORD=$SETUP_PW ./copy-ssh-id.sh
     ;;
   --install)
-    scp -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -P $SSH_PORT \
-          uefi-install.sh configuration.nix nixos@localhost:
-    ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -p $SSH_PORT \
-      nixos@localhost "sudo bash ./uefi-install.sh"
+    scp -F vm.ssh.config uefi-install.sh configuration.nix nixos@vm:
+    ssh -F vm.ssh.config nixos@vm "sudo bash ./uefi-install.sh"
     ;;
   --ssh)
-    ssh "${SSH_OPTS[@]}"
+    ssh -F vm.ssh.config root@vm
     ;;
 esac

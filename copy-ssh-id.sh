@@ -1,5 +1,5 @@
 #!/usr/bin/expect -f
-spawn ssh-copy-id -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -p "$env(SSH_PORT)" nixos@localhost
+spawn ssh-copy-id -F vm.ssh.config nixos@vm
 expect {
   Password: {
     send_user "asked for password"
