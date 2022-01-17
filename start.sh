@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 DISK_IMG=./disk.img
-SSH_PORT=2222
 QEMU_MONITOR_SOCKET=qemu-monitor-socket
 args=(
   -m 16G -smp 4
@@ -65,13 +64,13 @@ case "$COMMAND" in
     (qemuType "passwd"; sleep 1) | qemuMonitor
     (qemuType $SETUP_PW; sleep 1) | qemuMonitor
     (qemuType $SETUP_PW; sleep 1) | qemuMonitor
-    SETUP_PASSWORD=$SETUP_PW ./copy-ssh-id.sh
+    PASSWORD=$SETUP_PW ssh-copy-id-password vm
     ;;
   --install)
-    scp -F vm.ssh.config uefi-install.sh configuration.nix nixos@vm:
-    ssh -F vm.ssh.config nixos@vm "sudo bash ./uefi-install.sh"
+    scp uefi-install.sh configuration.nix nixos@vm:
+    ssh nixos@vm "sudo bash ./uefi-install.sh"
     ;;
   --ssh)
-    ssh -F vm.ssh.config root@vm
+    ssh root@vm
     ;;
 esac
