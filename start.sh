@@ -43,7 +43,11 @@ function mkDiskImg() {
 }
 
 function qemuMonitor() {
-  socat - unix-connect:qemu-monitor-socket
+  socat - unix-connect:$QEMU_MONITOR_SOCKET
+}
+
+function qemuMonitor2() {
+  (cat ; sleep 1) | qemuMonitor
 }
 
 function qemuType() {
@@ -61,9 +65,9 @@ case "$COMMAND" in
     ;;
   --set-ssh)
     SETUP_PW=asdf
-    (qemuType "passwd"; sleep 1) | qemuMonitor
-    (qemuType $SETUP_PW; sleep 1) | qemuMonitor
-    (qemuType $SETUP_PW; sleep 1) | qemuMonitor
+    qemuType "passwd" | qemuMonitor2
+    qemuType $SETUP_PW | qemuMonitor2
+    qemuType $SETUP_PW | qemuMonitor2
     PASSWORD=$SETUP_PW ssh-copy-id-password vm
     ;;
   --install)
