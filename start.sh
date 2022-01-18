@@ -10,25 +10,32 @@ args=(
   # networking
   -device e1000,netdev=net0
   -netdev user,id=net0,hostfwd=tcp::$SSH_PORT-:22
+  # block device controller
+  # https://www.qemu.org/2021/01/19/virtio-blk-scsi-configuration/
+  # https://blogs.oracle.com/linux/post/how-to-emulate-block-devices-with-qemu
+  -device ahci,id=achi0                         #SATA
+  -device virtio-scsi-pci,id=scsi0,num_queues=4 #SCSI
 
   ## Legacy BIOS Mode
   # boot device
   #-cdrom $NIXOS_ISO # booting with BIOS mode
   # main disk
   #-hda $DISK_IMG
-
   ## UEFI boot
   # https://unix.stackexchange.com/questions/530674/qemu-doesnt-respect-the-boot-order-when-booting-with-uefi-ovmf
   -drive if=pflash,format=raw,readonly=on,file=$OVMF/FV/OVMF.fd
+
   # boot cdrom
   -drive id=cd1,file=${NIXOS_ISO},format=raw,if=none,media=cdrom,readonly=on
-  #-device ide-cd,drive=cd1,id=cd1,bootindex=1
-  # https://wiki.gentoo.org/wiki/QEMU/Options#Hard_drive
-  # using SATA/AHCI
-  -device ahci,id=achi0
-  -device ide-cd,id=cd1,bus=achi0.0,drive=cd1,bootindex=1
-  -drive id=hd1,file=$DISK_IMG,format=qcow2,media=disk,if=none
-  -device ide-hd,id=hd1,bus=achi0.1,drive=hd1,bootindex=0
+  #-device ide-cd,drive=cd1,id=cd1,bootindex=1 #default
+  #-device ide-cd,id=cd1,bus=achi0.0,drive=cd1,bootindex=1 #SATA
+  -device scsi-hd,drive=cd1,bus=scsi0.0,channel=0,scsi-id=0,lun=1,bootindex=1 #virtio-scsi
+
+  # block device configuration
+  # -drive id=hd1,file=$DISK_IMG,format=qcow2,media=disk,if=none         # default
+  #-device virtio-blk-pci,drive=hd1,id=virtblk0,num-queues=4,bootindex=0 # virtio-blk
+  #-device ide-hd,id=hd1,bus=achi0.1,drive=hd1,bootindex=0               # SATA
+  -device scsi-hd,drive=hd1,bus=scsi0.0,channel=0,scsi-id=0,lun=0,bootindex=0 #virtio-scsi
 )
 
 function start() {
@@ -72,7 +79,11 @@ case "$COMMAND" in
     ;;
   --install)
     scp uefi-install.sh configuration.nix nixos@vm:
+    BEFORE=$(date)
     ssh nixos@vm "sudo bash ./uefi-install.sh"
+    DONE=$(date)
+    echo "BEFORE: $BEFORE"
+    echo "DONE:   $DONE"
     ;;
 
   --fresh-vm)
