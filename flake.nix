@@ -1,9 +1,8 @@
 {
-  description = "A very basic flake";
+  description = "Configuration for NixOS in QEMU VM";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    #nixpkgs.url = "github:r2r-dev/nixpkgs/qemu-darwin-fixes";
     flake-utils.url = "github:numtide/flake-utils";
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;

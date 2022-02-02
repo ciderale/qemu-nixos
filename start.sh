@@ -32,7 +32,7 @@ args=(
   -device scsi-hd,drive=cd1,bus=scsi0.0,channel=0,scsi-id=0,lun=1,bootindex=1 #virtio-scsi
 
   # block device configuration
-  # -drive id=hd1,file=$DISK_IMG,format=qcow2,media=disk,if=none         # default
+  -drive id=hd1,file=$DISK_IMG,format=qcow2,media=disk,if=none         # default
   #-device virtio-blk-pci,drive=hd1,id=virtblk0,num-queues=4,bootindex=0 # virtio-blk
   #-device ide-hd,id=hd1,bus=achi0.1,drive=hd1,bootindex=0               # SATA
   -device scsi-hd,drive=hd1,bus=scsi0.0,channel=0,scsi-id=0,lun=0,bootindex=0 #virtio-scsi
