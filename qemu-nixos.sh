@@ -6,6 +6,7 @@ args=(
   # accelleration
   -machine type=q35,accel=hvf -cpu Nehalem
   -vga virtio
+  -display default,show-cursor=on -usb -device usb-tablet # show cursor
   -monitor unix:$QEMU_MONITOR_SOCKET,server,nowait
   # networking
   -device e1000,netdev=net0
