@@ -41,9 +41,10 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
   services.xserver.windowManager.awesome.enable = true;
-
-
-  
+  #services.xserver.desktopManager.plasma5.enable = true;
+  services.xserver.resolutions = [
+    { x=1280; y=1024; }
+  ];
 
   # Configure keymap in X11
   services.xserver.layout = "us";
@@ -68,14 +69,15 @@
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGyy4BIN8rdI63IWBkfqZNuP9FQnxVFV9fEPs0OwPlcb ale@bigfoot"
     ];
   };
-  users.users.root.initialPassword = "password";
+  users.users.root.initialPassword = "root";
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #   wget
-     firefox
+    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #   wget
+    firefox
+    alsa-utils
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
