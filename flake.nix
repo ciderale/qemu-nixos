@@ -22,10 +22,18 @@
         UserKnownHostsFile=/dev/null
         StrictHostKeyChecking=no
     '';
-    OVMF=nixpkgs.legacyPackages.x86_64-linux.OVMFFull.fd;
+    #x86_64
+    #OVMF=nixpkgs.legacyPackages.x86_64-linux.OVMFFull.fd;
+    #NIXOS_ISO = pkgs.fetchurl {
+    #  url = "https://hydra.nixos.org/build/166431748/download/1/nixos-minimal-21.11.335749.4da27abaebe-x86_64-linux.iso";
+    #  sha256 = "zdCAmGxy6MegeYa9aPMvLiQcpk0GTfOxyLPcld0wh9I=";
+    #};
+    #aarch64
+    OVMF=nixpkgs.legacyPackages.aarch64-linux.OVMF.fd;
     NIXOS_ISO = pkgs.fetchurl {
-      url = "https://hydra.nixos.org/build/166431748/download/1/nixos-minimal-21.11.335749.4da27abaebe-x86_64-linux.iso";
-      sha256 = "zdCAmGxy6MegeYa9aPMvLiQcpk0GTfOxyLPcld0wh9I=";
+      #url = "https://hydra.nixos.org/build/166431748/download/1/nixos-minimal-21.11.335749.4da27abaebe-x86_64-linux.iso";
+      url = "https://hydra.nixos.org/build/167910054/download/1/nixos-minimal-21.11.336125.cc81cf48115-aarch64-linux.iso";
+      sha256 = "KA1vlJcq9+PkI+cXa+gir3upRfpUYwMJdO11HymYiiU=";
     };
   in rec {
     devShell = pkgs.mkShell {

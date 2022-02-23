@@ -1,12 +1,25 @@
 #!/usr/bin/env bash
 DISK_IMG=./disk.img
 QEMU_MONITOR_SOCKET=qemu-monitor-socket
-args=(
-  -m 16G -smp 4
-  # accelleration
+args_aarch=(
+  -cpu cortex-a72 -M virt,highmem=off -accel hvf
+  -device virtio-gpu-pci
+  -device qemu-xhci
+  -device usb-kbd
+  -bios $OVMF/FV/QEMU_EFI.fd
+  )
+args_x86=(
   -machine type=q35,accel=hvf -cpu Nehalem
   -vga virtio
-  -display default,show-cursor=on -usb -device usb-tablet # show cursor
+  -usb 
+  ## UEFI boot
+  # https://unix.stackexchange.com/questions/530674/qemu-doesnt-respect-the-boot-order-when-booting-with-uefi-ovmf
+  #-drive if=pflash,format=raw,readonly=on,file=$OVMF/FV/OVMF.fd
+  )
+args=(
+  -m 16G -smp 4
+  -serial stdio
+  -display default,show-cursor=on -device usb-tablet # show cursor
   -monitor unix:$QEMU_MONITOR_SOCKET,server,nowait
   # networking
   -device e1000,netdev=net0
@@ -16,15 +29,6 @@ args=(
   # https://blogs.oracle.com/linux/post/how-to-emulate-block-devices-with-qemu
   -device ahci,id=achi0                         #SATA
   -device virtio-scsi-pci,id=scsi0,num_queues=4 #SCSI
-
-  ## Legacy BIOS Mode
-  # boot device
-  #-cdrom $NIXOS_ISO # booting with BIOS mode
-  # main disk
-  #-hda $DISK_IMG
-  ## UEFI boot
-  # https://unix.stackexchange.com/questions/530674/qemu-doesnt-respect-the-boot-order-when-booting-with-uefi-ovmf
-  -drive if=pflash,format=raw,readonly=on,file=$OVMF/FV/OVMF.fd
 
   # boot cdrom
   -drive id=cd1,file=${NIXOS_ISO},format=raw,if=none,media=cdrom,readonly=on
@@ -40,7 +44,8 @@ args=(
 )
 
 function start() {
-  qemu-system-x86_64 "${args[@]}"
+  #qemu-system-x86_64 "${args_x86[@]}" "${args[@]}"
+  qemu-system-aarch64 "${args_aarch[@]}" "${args[@]}"
 }
 
 function mkDiskImg() {

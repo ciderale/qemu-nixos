@@ -24,7 +24,8 @@
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
   networking.useDHCP = false;
-  networking.interfaces.enp0s2.useDHCP = true;
+  #networking.interfaces.enp0s2.useDHCP = true;
+  networking.interfaces.enp0s3.useDHCP = true;
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -74,7 +75,7 @@
   environment.systemPackages = with pkgs; [
      vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #   wget
-  #   firefox
+     firefox
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
