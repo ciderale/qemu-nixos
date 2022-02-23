@@ -11,6 +11,8 @@ args=(
   # networking
   -device e1000,netdev=net0
   -netdev user,id=net0,hostfwd=tcp::$SSH_PORT-:22
+  # audio
+  -audiodev coreaudio,id=audio -device intel-hda -device hda-output,audiodev=audio
 
   # block device controller
   # https://www.qemu.org/2021/01/19/virtio-blk-scsi-configuration/
