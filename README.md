@@ -26,10 +26,10 @@ and login is provided for user "nixos" and password "nixos".
 
 ## Current state
 
-* [X] The current configuration assumes the host is an intel based mac.
-* [X] The boot process is done using UEFI boot
-* [X] It uses apple's hypervisor framework (hvf) for accelleration
-* [ ] Extend to run on M1 macs
+* [X] Setup for Intel & M1 based macs
+* [X] Use apple's hypervisor framework (hvf) for accelleration
+* [X] UEFI based boot process
+* [X] Sound support
 * [ ] Enabling 9p based mount of host filesystem into the guest
 			(https://github.com/NixOS/nixpkgs/pull/122420)
 * [ ] Run docker in NixOS and provide it to the host system
