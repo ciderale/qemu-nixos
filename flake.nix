@@ -6,6 +6,9 @@
     flake-utils.url = "github:numtide/flake-utils";
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
+    colmena.url = "github:zhaofengli/colmena";
+    colmena.inputs.nixpkgs.follows = "nixpkgs";
+    colmena.inputs.flake-compat.follows = "flake-compat";
   };
 
   outputs = inputs@{ self, nixpkgs, flake-utils, ... }: {
@@ -55,9 +58,10 @@
           '';
       };
     };
+    colmenaX = inputs.colmena.packages."${system}".colmena;
   in rec {
     devShell = pkgs.mkShell {
-      buildInputs = with pkgs; [qemu qemu-utils socat expect vmssh];
+      buildInputs = with pkgs; [qemu qemu-utils socat expect vmssh colmenaX];
       inherit SSH_PORT system;
       inherit (qemu_args."${system}") NIXOS_ISO OVMF QEMU_BIN QEMU_PARAMS;
     }; # // (qemu_args."${system}");
