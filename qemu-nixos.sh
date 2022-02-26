@@ -83,6 +83,7 @@ case "$COMMAND" in
 
   --fresh-vm)
     rm disk.img
+    ssh-keygen -R '[localhost]:2222'
     $0 --mkimg
     $0 --start
     ;;
