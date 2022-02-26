@@ -12,6 +12,7 @@
   };
 
   outputs = inputs@{ self, nixpkgs, flake-utils, ... }: {
+    colmena = import ./colmena.nix inputs;
   } // flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = nixpkgs.legacyPackages.${system};
