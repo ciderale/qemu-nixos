@@ -9,12 +9,16 @@ parted $DEVICE -- set 3 esp on
 mkfs.ext4 -L nixos ${DEVICE}1
 mkswap -L swap ${DEVICE}2
 mkfs.fat -F 32 -n boot ${DEVICE}3
-# Installation
+# Pre-Installation
 mount /dev/disk/by-label/nixos /mnt
 mkdir -p /mnt/boot
 mount /dev/disk/by-label/boot /mnt/boot
 swapon ${DEVICE}2
-nixos-generate-config --root /mnt
-cp ./configuration.nix /mnt/etc/nixos/configuration.nix
+# Generate/Copy Configuration
+# nixos-generate-config --root /mnt
+# cp ./configuration.nix /mnt/etc/nixos/configuration.nix
+mkdir -p /mnt/etc/nixos
+cp ./*configuration.nix /mnt/etc/nixos/
+# Installation
 nixos-install --no-root-passwd
 reboot

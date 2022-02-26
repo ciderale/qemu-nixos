@@ -73,7 +73,7 @@ case "$COMMAND" in
     PASSWORD=$SETUP_PW ssh-copy-id-password vm
     ;;
   --install)
-    scp uefi-install.sh configuration.nix nixos@vm:
+    scp uefi-install.sh {hardware-,}configuration.nix nixos@vm:
     BEFORE=$(date)
     ssh nixos@vm "sudo bash ./uefi-install.sh"
     DONE=$(date)
