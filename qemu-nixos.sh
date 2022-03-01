@@ -93,4 +93,15 @@ case "$COMMAND" in
     $0 --set-ssh
     $0 --install
     ;;
+
+  --fresh)
+    $0 --fresh-vm &
+    sleep 10
+    $0 --full-setup
+    sleep 15 # wait that vm is fully shut down
+    echo "#############################################"
+    echo "#####  Installation completed  ##############"
+    echo "#############################################"
+    $0 --start
+    ;;
 esac

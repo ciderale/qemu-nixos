@@ -21,4 +21,5 @@ mkdir -p /mnt/etc/nixos
 cp ./*configuration.nix /mnt/etc/nixos/
 # Installation
 nixos-install --no-root-passwd
-reboot
+#reboot
+shutdown now # this will terminate the backgrounded "--fresh-vm" process
