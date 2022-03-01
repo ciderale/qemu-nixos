@@ -11,6 +11,9 @@ inputs: {
       targetUser = "root";
       buildOnTarget = true;
     };
-    imports = [./configuration.nix];
+    imports = [
+      ./configuration.nix
+      ./docker-duck.nix
+    ];
   };
 }

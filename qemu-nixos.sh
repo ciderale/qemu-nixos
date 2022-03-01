@@ -31,6 +31,10 @@ args=(
   #-device virtio-blk-pci,drive=hd1,id=virtblk0,num-queues=4,bootindex=0 # virtio-blk
   #-device ide-hd,id=hd1,bus=achi0.1,drive=hd1,bootindex=0               # SATA
   -device scsi-hd,drive=hd1,bus=scsi0.0,channel=0,scsi-id=0,lun=0,bootindex=0 #virtio-scsi
+
+  # mounting of host file system into guest filesystem
+  -virtfs local,path=/Users,security_model=mapped-xattr,mount_tag=host_users
+  -virtfs local,path=/tmp,security_model=mapped-xattr,mount_tag=host_tmp
 )
 
 function start() {
