@@ -2,7 +2,8 @@
   description = "Configuration for NixOS in QEMU VM";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    # use 9p patched qemu branch: https://github.com/NixOS/nixpkgs/pull/162243/commits
+    nixpkgs.url = "github:nixos/nixpkgs/?rev=99a306df0220bbbe6b5a12c2d6434e5d51494275";
     flake-utils.url = "github:numtide/flake-utils";
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
