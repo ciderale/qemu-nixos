@@ -63,9 +63,10 @@
     colmenaX = inputs.colmena.packages."${system}".colmena;
   in rec {
     devShell = pkgs.mkShell {
-      buildInputs = with pkgs; [qemu qemu-utils socat expect vmssh colmenaX];
+      buildInputs = with pkgs; [qemu qemu-utils socat expect vmssh colmenaX docker];
       inherit SSH_PORT system;
       inherit (qemu_args."${system}") NIXOS_ISO OVMF QEMU_BIN QEMU_PARAMS;
+      DOCKER_HOST = "tcp://";
     }; # // (qemu_args."${system}");
   });
 }

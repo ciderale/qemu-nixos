@@ -10,7 +10,7 @@ args=(
   -monitor unix:$QEMU_MONITOR_SOCKET,server,nowait
   # networking
   -device e1000,netdev=net0
-  -netdev user,id=net0,hostfwd=tcp::$SSH_PORT-:22
+  -netdev user,id=net0,hostfwd=tcp::$SSH_PORT-:22,hostfwd=tcp::2375-:2375
   # audio
   -audiodev coreaudio,id=audio -device intel-hda -device hda-output,audiodev=audio
 
