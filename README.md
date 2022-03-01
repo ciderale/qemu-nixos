@@ -34,4 +34,6 @@ and login is provided for user "nixos" and password "nixos".
 * [X] Enabling 9p based mount of host filesystem into the guest
 	    https://github.com/NixOS/nixpkgs/pull/122420
 * [ ] Run docker in NixOS and provide it to the host system
+* [ ] nixify the qemu-nixos.sh configuration script
+* [ ] keep nixpkgs of nixos-install and colmena in sync
 
