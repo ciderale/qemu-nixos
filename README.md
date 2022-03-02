@@ -35,7 +35,7 @@ and login is provided for user "nixos" and password "nixos".
 	    https://github.com/NixOS/nixpkgs/pull/122420
 * [X] Run docker in NixOS and provide it to the host system
 * [ ] Docker port forwarding to host sytem
-* [ ] Volume mount of /tmp (or files in there)
+* [X] Volume mount of /tmp (or files in there)
 * [ ] nixify the qemu-nixos.sh configuration script
 * [ ] keep nixpkgs of nixos-install and colmena in sync
 
