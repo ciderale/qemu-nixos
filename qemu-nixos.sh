@@ -6,7 +6,11 @@ args=(
   $QEMU_PARAMS
   -m 16G -smp 4
   -serial stdio
-  -display default,show-cursor=on -device usb-tablet # show cursor
+  # with gui
+  # -display default,show-cursor=on -device usb-tablet # show cursor
+  # without gui
+  -nographic
+
   -monitor unix:$QEMU_MONITOR_SOCKET,server,nowait
   -monitor tcp:localhost:4444,server,nowait
   # networking
