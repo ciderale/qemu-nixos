@@ -29,6 +29,12 @@ files from the /tmp directory. Applying this configuration is as simple as:
 colmena apply
 ```
 
+### Known installation caveats
+
+* adapt network interface number ens2 (intel) or ens3 (m1) in configuration.nix
+* installation requires configured ssh public keys in configuration.nix
+* 9p support requires patched qemu which currently is built locally
+
 ## Current state
 
 * [X] Setup for Intel & M1 based macs
