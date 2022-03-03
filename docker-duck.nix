@@ -15,6 +15,9 @@ let
   mounterd = pkgs.writeShellScriptBin "mounterd" ''
        ${pkgs.docker}/bin/docker events | while read; do ${mounter}/bin/mounter; done
   '';
+  qemu-monitor = pkgs.writeShellScriptBin "qemu-monitor" ''
+    ${pkgs.socat}/bin/socat - tcp:10.0.2.11:4444
+  '';
 in
 
 {
@@ -42,7 +45,7 @@ in
   networking.firewall.allowedTCPPorts = [ 2375 ];
 
   environment.systemPackages = with pkgs; [
-    docker
+    docker qemu-monitor
   ];
 
   systemd.services.dockerTmpMounter = {

@@ -8,9 +8,11 @@ args=(
   -serial stdio
   -display default,show-cursor=on -device usb-tablet # show cursor
   -monitor unix:$QEMU_MONITOR_SOCKET,server,nowait
+  -monitor tcp:localhost:4444,server,nowait
   # networking
   -device e1000,netdev=net0
-  -netdev user,id=net0,hostfwd=tcp::$SSH_PORT-:22,hostfwd=tcp::2375-:2375
+  -netdev "user,id=net0,hostfwd=tcp::$SSH_PORT-:22,hostfwd=tcp::2375-:2375,host=10.0.2.2,guestfwd=tcp:10.0.2.11:4444-cmd: nc localhost 4444"
+
   # audio
   -audiodev coreaudio,id=audio -device intel-hda -device hda-output,audiodev=audio
 
