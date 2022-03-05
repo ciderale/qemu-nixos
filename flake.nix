@@ -42,7 +42,7 @@
 
   in rec {
     devShell = pkgs.mkShell {
-      buildInputs = with pkgs; [qemuNixos qemu-utils socat expect vmssh colmenaX docker];
+      buildInputs = with pkgs; [qemuNixos vmssh colmenaX docker];
       inherit SSH_PORT DOCKER_PORT QEMU_MONITOR_IN_VM system;
       DOCKER_HOST = "tcp://localhost:${toString DOCKER_PORT}";
     };
