@@ -1,12 +1,27 @@
 set -euo pipefail
 
+VERBOSE=${VERBOSE:-1}
+STATIC_PORTS="2222 2375"
+
+STATIC_PORTS_GREP=$(echo $STATIC_PORTS | sed -e 's/\([^ ]*\)/^\1$/g;s/ /\\|/g')
+QEMU_DELAY=0.2
+
+function debug() {
+  LEVEL=$1; shift
+  if [ $LEVEL -lt $VERBOSE ]; then
+    echo "${@}"
+  fi
+}
+
 function active_ports() {
   docker container ls --format "{{.Ports}}" \
-    | sed -ne "s/.*:\(.*\)->.*/\1/p"
+    | tr , '\n' \
+    | sed -ne "s/.*:\(.*\)->.*/\1/p" \
+    | sort | uniq
 }
 
 function qemu_do() {
-  (echo $*; sleep 0.2) | qemu-monitor
+  (echo "$*"; sleep $QEMU_DELAY) | qemu-monitor
 }
 
 function qemu_ports() {
@@ -22,30 +37,32 @@ function make_qemu_hostfwds() {
   done
 }
 
-function blacklisted() {
-  echo 2222
-  echo 2375
+function static_ports() {
+  grep -v "$STATIC_PORTS_GREP"
 }
 
 function watch_docker_expose_ports() {
-  (echo; docker events) |  while read line; do
-    local DOCKER_PORTS=$((active_ports ; blacklisted) | sort)
-    local QEMU_PORTS=$(qemu_ports | sort)
+  debug 0 "Starting partmapperd (ignoring $STATIC_PORTS_GREP)"
+  (echo; docker events) | while read line; do
+    local DOCKER_PORTS=$(active_ports | sort)
+    local QEMU_PORTS=$(qemu_ports | static_ports | sort)
 
-    #echo "###################"
-    #echo "state IST"
-    #echo "$QEMU_PORTS"
-    #echo "state SOLL"
-    #echo "$DOCKER_PORTS"
-    #echo "###################"
+    debug 1 "###################"
+    debug 1 "CURRENT state:"
+    debug 1 "$QEMU_PORTS"
+    debug 1 "TARGET state:"
+    debug 1 "$DOCKER_PORTS"
+    debug 1 "###################"
+
     ADD=$(comm -1 -3 <(echo "$QEMU_PORTS") <(echo "$DOCKER_PORTS"))
     REMOVE=$(comm -2 -3 <(echo "$QEMU_PORTS") <(echo "$DOCKER_PORTS"))
-    echo "adding '$ADD'  removing '$REMOVE'"
+    debug 1 "adding '$ADD'  removing '$REMOVE'"
 
     CMDS=$(make_qemu_hostfwds)
     if [ -n "$CMDS" ]; then
-      #echo $CMDS
+      debug 0 $CMDS
       qemu_do "$CMDS"
+      debug 1 "Forarded ports: $(qemu_ports|xargs)"
     fi
   done
 }
