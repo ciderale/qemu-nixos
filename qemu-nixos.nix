@@ -97,5 +97,13 @@ let
     )
     ${qemu} "''${ARGS[@]}"
   '';
+
+
+  qemuTools = pkgs.callPackage ./qemu-tools.nix {
+    qemu-monitor-address = "unix-connect:${monitor-socket}";
+  };
 in
-  qemu-nixos
+  pkgs.symlinkJoin {
+    name = "qemu-nixos";
+    paths = [qemuTools qemu-nixos];
+  }

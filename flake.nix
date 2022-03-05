@@ -22,6 +22,8 @@
 
     SSH_PORT=self.colmena.qemu-nixos.deployment.targetPort;
     DOCKER_PORT=2375;
+    QEMU_MONITOR_IN_VM = "10.0.2.11:4444";
+
     vmssh = import ./ssh.nix pkgs ''
       Host vm
         Hostname localhost
@@ -32,21 +34,16 @@
     '';
     colmenaX = inputs.colmena.packages."${system}".colmena;
 
-    QEMU_MONITOR_SOCKET = "/tmp/qemu-monitor-socket";
-    QEMU_MONITOR_IN_VM = "10.0.2.11:4444";
-    hostQemu = pkgs.callPackage ./qemu-tools.nix {
-      qemu-monitor-address = "unix-connect:${QEMU_MONITOR_SOCKET}";
-    };
     qemuNixos = pkgs.callPackage ./qemu-nixos.nix {
       inherit pkgsLinux;
-      monitor-socket = QEMU_MONITOR_SOCKET;
+      monitor-socket = "/tmp/qemu-monitor-socket";
       qemu-args = "";
     };
 
   in rec {
     devShell = pkgs.mkShell {
-      buildInputs = with pkgs; [qemu hostQemu qemuNixos qemu-utils socat expect vmssh colmenaX docker];
-      inherit SSH_PORT DOCKER_PORT QEMU_MONITOR_SOCKET QEMU_MONITOR_IN_VM system;
+      buildInputs = with pkgs; [qemuNixos qemu-utils socat expect vmssh colmenaX docker];
+      inherit SSH_PORT DOCKER_PORT QEMU_MONITOR_IN_VM system;
       DOCKER_HOST = "tcp://localhost:${toString DOCKER_PORT}";
     };
   });
