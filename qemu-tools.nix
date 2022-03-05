@@ -9,11 +9,10 @@ let
     ${pkgs.socat}/bin/socat - ${qemu-monitor-address};
   '';
   qemu-pipe = pkgs.writeShellScriptBin "qemu-pipe" ''
-    DELAY=${DELAY:-0.2}
-    (cat; sleep $DELAY) | ${qemu-monitor}/bin/qemu-monitor
+    (cat; sleep 0.2) | ${qemu-monitor}/bin/qemu-monitor
   '';
   qemu-cmd = pkgs.writeShellScriptBin "qemu-cmd" ''
-    echo $* | ${qemu-pipe}/bin/qemu-pipe
+    echo "$*" | ${qemu-pipe}/bin/qemu-pipe
   '';
   qemu-type = pkgs.writeShellScriptBin "qemu-type" ''
     (echo -n $1 | ${grep} -o . | ${sed} -e 's/^/sendkey /';
