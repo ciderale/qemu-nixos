@@ -2,7 +2,6 @@
 set -eux -o pipefail
 DISK_IMG=./disk.img
 QEMU_MONITOR_SOCKET=qemu-monitor-socket
-QEMU_MONITOR_PORT=4444
 QEMU_MONITOR_IN_VM=10.0.2.11:4444
 args=(
   $QEMU_PARAMS
@@ -14,10 +13,9 @@ args=(
   -nographic
 
   -monitor unix:$QEMU_MONITOR_SOCKET,server,nowait
-  -monitor tcp:localhost:$QEMU_MONITOR_PORT,server,nowait
   # networking
   -device e1000,netdev=net0
-  -netdev "user,id=net0,hostfwd=tcp::$SSH_PORT-:22,hostfwd=tcp::$DOCKER_PORT-:2375,host=10.0.2.2,guestfwd=tcp:$QEMU_MONITOR_IN_VM-cmd: nc localhost $QEMU_MONITOR_PORT"
+  -netdev "user,id=net0,hostfwd=tcp::$SSH_PORT-:22,hostfwd=tcp::$DOCKER_PORT-:2375,host=10.0.2.2,guestfwd=tcp:$QEMU_MONITOR_IN_VM-cmd: socat - unix-connect:$QEMU_MONITOR_SOCKET"
 
   # audio
   -audiodev coreaudio,id=audio -device intel-hda -device hda-output,audiodev=audio
