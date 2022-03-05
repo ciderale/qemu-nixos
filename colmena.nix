@@ -1,7 +1,7 @@
 inputs: {
   meta = {
     nixpkgs = import inputs.nixpkgs {
-      system = "aarch64-linux";
+      system = builtins.replaceStrings ["darwin"] ["linux"] builtins.currentSystem;
     };
   };
   qemu-nixos = {

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-set -x
+set -eux -o pipefail
 DISK_IMG=./disk.img
 QEMU_MONITOR_SOCKET=qemu-monitor-socket
+QEMU_MONITOR_PORT=4444
+QEMU_MONITOR_IN_VM=10.0.2.11:4444
 args=(
   $QEMU_PARAMS
   -m 16G -smp 4
@@ -12,10 +14,10 @@ args=(
   -nographic
 
   -monitor unix:$QEMU_MONITOR_SOCKET,server,nowait
-  -monitor tcp:localhost:4444,server,nowait
+  -monitor tcp:localhost:$QEMU_MONITOR_PORT,server,nowait
   # networking
   -device e1000,netdev=net0
-  -netdev "user,id=net0,hostfwd=tcp::$SSH_PORT-:22,hostfwd=tcp::2375-:2375,host=10.0.2.2,guestfwd=tcp:10.0.2.11:4444-cmd: nc localhost 4444"
+  -netdev "user,id=net0,hostfwd=tcp::$SSH_PORT-:22,hostfwd=tcp::$DOCKER_PORT-:2375,host=10.0.2.2,guestfwd=tcp:$QEMU_MONITOR_IN_VM-cmd: nc localhost $QEMU_MONITOR_PORT"
 
   # audio
   -audiodev coreaudio,id=audio -device intel-hda -device hda-output,audiodev=audio
@@ -93,7 +95,7 @@ case "$COMMAND" in
 
   --fresh-vm)
     rm disk.img
-    ssh-keygen -R '[localhost]:2222'
+    ssh-keygen -R "[localhost]:$SSH_PORT"
     $0 --mkimg
     $0 --start
     ;;

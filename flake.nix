@@ -18,11 +18,12 @@
   let
     pkgs = nixpkgs.legacyPackages.${system};
 
-    SSH_PORT="2222";
+    SSH_PORT=self.colmena.qemu-nixos.deployment.targetPort;
+    DOCKER_PORT=2375;
     vmssh = import ./ssh.nix pkgs ''
       Host vm
         Hostname localhost
-        Port ${SSH_PORT}
+        Port ${toString SSH_PORT}
         User nixos
         UserKnownHostsFile=/dev/null
         StrictHostKeyChecking=no
@@ -64,9 +65,9 @@
   in rec {
     devShell = pkgs.mkShell {
       buildInputs = with pkgs; [qemu qemu-utils socat expect vmssh colmenaX docker];
-      inherit SSH_PORT system;
+      inherit SSH_PORT DOCKER_PORT system;
       inherit (qemu_args."${system}") NIXOS_ISO OVMF QEMU_BIN QEMU_PARAMS;
-      DOCKER_HOST = "tcp://";
-    }; # // (qemu_args."${system}");
+      DOCKER_HOST = "tcp://localhost:${toString DOCKER_PORT}";
+    };
   });
 }
