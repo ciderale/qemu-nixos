@@ -15,12 +15,9 @@ let
   mounterd = pkgs.writeShellScriptBin "mounterd" ''
        ${pkgs.docker}/bin/docker events | while read; do ${mounter}/bin/mounter; done
   '';
-  qemu-monitor = pkgs.writeShellScriptBin "qemu-monitor" ''
-    ${pkgs.socat}/bin/socat - tcp:10.0.2.11:4444
-  '';
-  qemu-cmd = pkgs.writeShellScriptBin "qemu-cmd" ''
-    (echo $*; sleep 0.2) | ${qemu-monitor}/bin/qemu-monitor
-  '';
+  qemu-tools = pkgs.callPackage ./qemu-tools.nix {
+    pkgs = pkgs; qemu-monitor-address = "tcp:10.0.2.11:4444";
+  };
   portmapperd = pkgs.writeShellScriptBin "portmapperd" (builtins.readFile ./portmapperd.sh);
 in
 
@@ -49,7 +46,7 @@ in
   networking.firewall.allowedTCPPorts = [ 2375 ];
 
   environment.systemPackages = with pkgs; [
-    docker qemu-monitor qemu-cmd
+    docker qemu-tools
   ];
 
   systemd.services.dockerTmpMounter = {
@@ -67,7 +64,7 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       description = "forward exposed docker ports from guest to host";
-      path = with pkgs; [qemu-monitor docker gnugrep gawk];
+      path = with pkgs; [qemu-tools docker gnugrep gawk];
       serviceConfig = {
         Type = "simple";
         ExecStart = ''${portmapperd}/bin/portmapperd'';

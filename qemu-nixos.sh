@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eux -o pipefail
-DISK_IMG=./disk.img
-QEMU_MONITOR_SOCKET=qemu-monitor-socket
+DISK_IMG=/tmp/disk.img
+#QEMU_MONITOR_SOCKET= must be set
 QEMU_MONITOR_IN_VM=10.0.2.11:4444
 args=(
   $QEMU_PARAMS
@@ -54,19 +54,6 @@ function mkDiskImg() {
   qemu-img create -f qcow2 $DISK_IMG 100G
 }
 
-function qemuMonitor() {
-  socat - unix-connect:$QEMU_MONITOR_SOCKET
-}
-
-function qemuMonitor2() {
-  (cat ; sleep 1) | qemuMonitor
-}
-
-function qemuType() {
-  local TXT=$1
-  (echo -n $TXT | grep -o . | sed -e 's/^/sendkey /'; echo "sendkey ret")
-}
-
 COMMAND=$1
 case "$COMMAND" in
   --mkimg)
@@ -77,9 +64,9 @@ case "$COMMAND" in
     ;;
   --set-ssh)
     SETUP_PW=asdf
-    qemuType "passwd" | qemuMonitor2
-    qemuType $SETUP_PW | qemuMonitor2
-    qemuType $SETUP_PW | qemuMonitor2
+    qemu-type "passwd"; sleep 1
+    qemu-type $SETUP_PW; sleep 1
+    qemu-type $SETUP_PW; sleep 1
     PASSWORD=$SETUP_PW ssh-copy-id-password vm
     ;;
   --install)
@@ -92,7 +79,7 @@ case "$COMMAND" in
     ;;
 
   --fresh-vm)
-    rm disk.img
+    rm $DISK_IMG
     ssh-keygen -R "[localhost]:$SSH_PORT"
     $0 --mkimg
     $0 --start

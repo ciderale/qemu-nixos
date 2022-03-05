@@ -62,10 +62,14 @@
       };
     };
     colmenaX = inputs.colmena.packages."${system}".colmena;
+    QEMU_MONITOR_SOCKET = "/tmp/qemu-monitor-socket";
+    hostQemu = pkgs.callPackage ./qemu-tools.nix {
+      qemu-monitor-address = "unix-connect:${QEMU_MONITOR_SOCKET}";
+    };
   in rec {
     devShell = pkgs.mkShell {
-      buildInputs = with pkgs; [qemu qemu-utils socat expect vmssh colmenaX docker];
-      inherit SSH_PORT DOCKER_PORT system;
+      buildInputs = with pkgs; [qemu hostQemu qemu-utils socat expect vmssh colmenaX docker];
+      inherit SSH_PORT DOCKER_PORT QEMU_MONITOR_SOCKET system;
       inherit (qemu_args."${system}") NIXOS_ISO OVMF QEMU_BIN QEMU_PARAMS;
       DOCKER_HOST = "tcp://localhost:${toString DOCKER_PORT}";
     };

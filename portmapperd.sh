@@ -25,7 +25,7 @@ function qemu_do() {
 }
 
 function qemu_ports() {
-  qemu_do "info usernet" | grep HOST_FORWARD | awk '{ print $4 }'
+  qemu-cmd "info usernet" | grep HOST_FORWARD | awk '{ print $4 }'
 }
 
 function make_qemu_hostfwds() {
@@ -61,7 +61,7 @@ function watch_docker_expose_ports() {
     CMDS=$(make_qemu_hostfwds)
     if [ -n "$CMDS" ]; then
       debug 0 $CMDS
-      qemu_do "$CMDS"
+      qemu-cmd "$CMDS"
       debug 1 "Forarded ports: $(qemu_ports|xargs)"
     fi
   done
