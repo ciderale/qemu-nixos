@@ -20,10 +20,6 @@ function active_ports() {
     | sort | uniq
 }
 
-function qemu_do() {
-  (echo "$*"; sleep $QEMU_DELAY) | qemu-monitor
-}
-
 function qemu_ports() {
   qemu-cmd "info usernet" | grep HOST_FORWARD | awk '{ print $4 }'
 }
