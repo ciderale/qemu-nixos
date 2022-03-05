@@ -36,7 +36,7 @@ case "$COMMAND" in
     $0 --fresh-vm &
     sleep 10
     $0 --full-setup
-    sleep 15 # wait that vm is fully shut down
+    qemu-pipe <<< "quit"
     echo "#############################################"
     echo "#####  Installation completed  ##############"
     echo "#############################################"
