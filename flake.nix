@@ -14,6 +14,14 @@
 
   outputs = inputs@{ self, nixpkgs, flake-utils, ... }: {
     colmena = import ./colmena.nix inputs;
+    nixosConfigurations.docker-duck = nixpkgs.lib.nixosSystem {
+      system = "aarch64-linux"; # how to stay multi-architecture?
+      modules = [
+        ./configuration.nix
+        ./docker-duck.nix
+        { documentation.nixos.enable = false; }
+      ];
+    };
   } // flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = nixpkgs.legacyPackages.${system};

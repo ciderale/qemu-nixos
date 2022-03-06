@@ -16,9 +16,3 @@ mount /dev/disk/by-label/boot /mnt/boot
 swapon ${DEVICE}2
 # Generate/Copy Configuration
 # nixos-generate-config --root /mnt
-# cp ./configuration.nix /mnt/etc/nixos/configuration.nix
-mkdir -p /mnt/etc/nixos
-cp ./*configuration.nix /mnt/etc/nixos/
-# Installation
-nixos-install --no-root-passwd
-sync

@@ -14,9 +14,10 @@ case "$COMMAND" in
     PASSWORD=$SETUP_PW ssh-copy-id-password vm
     ;;
   --install)
-    scp uefi-install.sh {hardware-,}configuration.nix nixos@vm:
+    scp vm-partitioning.sh vm-install.sh nixos@vm:
     BEFORE=$(date)
-    ssh nixos@vm "sudo bash ./uefi-install.sh"
+    ssh nixos@vm "sudo bash ./vm-partitioning.sh"
+    ssh nixos@vm "sudo bash ./vm-install.sh"
     DONE=$(date)
     echo "BEFORE: $BEFORE"
     echo "DONE:   $DONE"
