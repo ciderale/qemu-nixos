@@ -6,6 +6,21 @@ case "$COMMAND" in
   --start)
     qemu-nixos
     ;;
+
+
+  --fresh)
+    qemu-nixos --fresh &
+    sleep 10
+    waitForSsh vm
+    $0 --set-ssh
+    $0 --install
+    qemu-pipe <<< "quit"
+    echo "#############################################"
+    echo "#####  Installation completed  ##############"
+    echo "#############################################"
+    $0 --start
+    ;;
+
   --set-ssh)
     SETUP_PW=asdf
     qemu-type "passwd"; sleep 1
@@ -13,34 +28,11 @@ case "$COMMAND" in
     qemu-type $SETUP_PW; sleep 1
     PASSWORD=$SETUP_PW ssh-copy-id-password vm
     ;;
+
   --install)
     scp vm-partitioning.sh vm-install.sh nixos@vm:
-    BEFORE=$(date)
     ssh nixos@vm "sudo bash ./vm-partitioning.sh"
     ssh nixos@vm "sudo bash ./vm-install.sh"
-    DONE=$(date)
-    echo "BEFORE: $BEFORE"
-    echo "DONE:   $DONE"
     ;;
 
-  --fresh-vm)
-    qemu-nixos --fresh
-    ;;
-
-  --full-setup)
-    waitForSsh vm
-    $0 --set-ssh
-    $0 --install
-    ;;
-
-  --fresh)
-    $0 --fresh-vm &
-    sleep 10
-    $0 --full-setup
-    qemu-pipe <<< "quit"
-    echo "#############################################"
-    echo "#####  Installation completed  ##############"
-    echo "#############################################"
-    $0 --start
-    ;;
 esac
