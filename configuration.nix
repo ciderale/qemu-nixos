@@ -43,22 +43,19 @@
   # };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  security.sudo.wheelNeedsPassword = false;
   users.users.nixos = {
     isNormalUser = true;
     extraGroups = [ "wheel" "docker" ]; # Enable ‘sudo’ for the user.
     initialPassword = "nixos";
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGyy4BIN8rdI63IWBkfqZNuP9FQnxVFV9fEPs0OwPlcb ale@bigfoot"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPKyKsE4eCn8BDnJZNmFttaCBmVUhO73qmhguEtNft6y ale@bigfoot"
-    ];
+#    openssh.authorizedKeys.keys = [
+#    ];
   };
-  users.users.root = {
-    initialPassword = "root";
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGyy4BIN8rdI63IWBkfqZNuP9FQnxVFV9fEPs0OwPlcb ale@bigfoot"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPKyKsE4eCn8BDnJZNmFttaCBmVUhO73qmhguEtNft6y ale@bigfoot"
-    ];
-  };
+#  users.users.root = {
+#    initialPassword = "root";
+#    openssh.authorizedKeys.keys = [
+#    ];
+#  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget

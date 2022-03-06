@@ -8,7 +8,7 @@ inputs: config: {
     deployment = {
       targetHost = "localhost";
       targetPort = config.ssh-port;
-      targetUser = "root";
+      targetUser = "nixos";
       buildOnTarget = true;
     };
     imports = config.modules;
