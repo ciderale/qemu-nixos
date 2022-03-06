@@ -24,8 +24,12 @@
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
   networking.useDHCP = false;
-  #networking.interfaces.enp0s2.useDHCP = true;
-  networking.interfaces.enp0s3.useDHCP = true;
+  # TODO: why are there different interface numbers?
+  networking.interfaces = if (pkgs.stdenv.isAarch64) then {
+    enp0s3.useDHCP = true;
+  } else {
+    enp0s2.useDHCP = true;
+  };
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
