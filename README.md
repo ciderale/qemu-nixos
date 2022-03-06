@@ -11,7 +11,7 @@ This repository provides a NixOS/QEMU configurations to provide a docker environ
 ### Known installation caveats
 
 * adapt network interface number ens2 (intel) or ens3 (m1) in configuration.nix
-* installation requires configured ssh public keys in configuration.nix (is that still an issue?)
+  (conditional configuration done, but ideally the have both the same id)
 * 9p support requires patched qemu which currently is built locally
   (the pack-port will soon by in nixpkgs and it's cache)
 
