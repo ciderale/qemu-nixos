@@ -100,6 +100,11 @@ let
     ssh nixos@vm "sudo bash ./vm-partitioning.sh"
     ssh nixos@vm "sudo bash ./vm-install.sh"
 
+    echo "configure authorized key in new installation"
+    SSH_DIR=/home/nixos/.ssh
+    AK=$SSH_DIR/authorized_keys
+    ssh nixos@vm "mkdir -p /mnt/$SSH_DIR; cat $AK >> /mnt/$AK; chmod 600 /mnt/$AK; sync"
+
     echo "## Installation completed; shutdown VM"
     qemu-pipe <<< "quit"
   '';
