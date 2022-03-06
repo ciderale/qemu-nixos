@@ -2,18 +2,18 @@
 
 This repository provides a NixOS/QEMU configurations to provide a docker environment with smooth integration with a MacOS host system. The system works on intel and m1 macs. It assumes nix & direnv is configured
 
-## Normal start
+## Start
 
+* Prerequisite: Nix (with flake support) is installed
+* Prerequisite: Configure (nix-)direnv or use `nix develop` shell
 * Start the vm with `qemu-nixos`
 * Enter the vm with `ssh vm`
-* Docker is available on port `tcp://` which is configured by direnv
+* `DOCKER_HOST=tcp://localhost:62375` is configured by direnv
 
 ### Known installation caveats
 
-* adapt network interface number ens2 (intel) or ens3 (m1) in configuration.nix
-  (conditional configuration done, but ideally the have both the same id)
 * 9p support requires patched qemu which currently is built locally
-  (the pack-port will soon by in nixpkgs and it's cache)
+  (it will be in 7.0 and the 6.2 back-port will soon by in nixpkgs and it's cache)
 
 ## Current state
 
