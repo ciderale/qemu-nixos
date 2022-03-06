@@ -2,25 +2,11 @@
 with lib;
 let
   cfg = config.docker-duck;
-  mounter = pkgs.writeShellScriptBin "mounter" ''
-      # create bind mounts
-      for i in $(comm -1 -3 <(ls -1 /tmp) <(ls /.tmp/)); do
-        test -d /.tmp/$i && mkdir /tmp/$i || touch /tmp/$i;
-        ${pkgs.mount}/bin/mount --bind /.tmp/$i /tmp/$i;
-        echo "bind mount $i";
-      done
-      # remove stale bind mounts
-      for i in /tmp/*; do
-        test ! -e $i && echo "unbind $i" && ${pkgs.umount}/bin/umount $i && rm -d $i
-      done
-  '';
-  mounterd = pkgs.writeShellScriptBin "mounterd" ''
-       ${pkgs.docker}/bin/docker events | while read; do ${mounter}/bin/mounter; done
-  '';
   qemu-tools = pkgs.callPackage ./qemu-tools.nix {
     qemu-monitor-address = "tcp:${cfg.qemu-monitor}";
   };
   portmapperd = pkgs.writeShellScriptBin "portmapperd" (builtins.readFile ./portmapperd.sh);
+  mounterd = pkgs.writeShellScriptBin "mounterd" (builtins.readFile ./mounterd.sh);
 in
   {
     options.docker-duck.qemu-monitor = mkOption {
@@ -61,6 +47,7 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       description = "Bind (un-)mount files and directories from host tmp to guest tmp";
+      path = with pkgs; [docker mount umount];
       serviceConfig = {
         Type = "simple";
         User = "root";
