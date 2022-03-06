@@ -29,8 +29,8 @@
     pkgsLinux = nixpkgs.legacyPackages.${linuxSystem};
 
     SSH_PORT=self.colmena.qemu-nixos.deployment.targetPort;
-    DOCKER_PORT=2375;
-    QEMU_MONITOR_IN_VM = "10.0.2.11:4444";
+    DOCKER_PORT=62375;
+    QEMU_MONITOR_IN_VM = "10.0.2.11:60066";
 
     vmssh = import ./ssh.nix pkgs ''
       Host vm

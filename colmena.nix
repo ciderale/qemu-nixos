@@ -7,7 +7,7 @@ inputs: {
   qemu-nixos = {
     deployment = {
       targetHost = "localhost";
-      targetPort = 2222;
+      targetPort = 60022;
       targetUser = "root";
       buildOnTarget = true;
     };
