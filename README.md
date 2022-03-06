@@ -1,7 +1,6 @@
-# Running NixOS in a QEMU VM
+# Running NixOS & Docker in a QEMU VM
 
-This repository experiments QEMU configurations for running NixOS as local VM. The NixOS installation is automated as much as possible. The setup assumes that nix/direnv is configured.
-
+This repository provides a NixOS/QEMU configurations to provide a docker environment with smooth integration with a MacOS host system. The system works on intel and m1 macs. It assumes nix & direnv is configured
 
 ## Normal start
 
@@ -12,8 +11,9 @@ This repository experiments QEMU configurations for running NixOS as local VM. T
 ### Known installation caveats
 
 * adapt network interface number ens2 (intel) or ens3 (m1) in configuration.nix
-* installation requires configured ssh public keys in configuration.nix
+* installation requires configured ssh public keys in configuration.nix (is that still an issue?)
 * 9p support requires patched qemu which currently is built locally
+  (the pack-port will soon by in nixpkgs and it's cache)
 
 ## Current state
 
@@ -28,48 +28,106 @@ This repository experiments QEMU configurations for running NixOS as local VM. T
 * [X] Docker port forwarding to host sytem
 * [X] Volume mount of /tmp (or files in there)
 * [X] nixify the qemu-nixos.sh configuration script
+* [X] nixos-installation using --flakes
+* [X] keep nixpkgs of nixos-install and colmena in sync
+* [ ] replace colemena with deploy-rs do avoid duplicating nixos configuration
 * [ ] tmp mounter: remove stale directory if host tmp is a file
 * [ ] adapt configuration to have same ens2/3 interface on intel&m1
-* [ ] keep nixpkgs of nixos-install and colmena in sync
 
+# Architecture / Challenges and Solutions
 
-## Old Details (to be removed)
+Providing docker functionality on MacOS with smooth integration requires
+various details to be solved. The following list gives an overview:
 
-The first script creates a fresh qcow disk image (erasing a previous one!)
-and then booting a VM with the NixOS installation CD and the disk image.
-```sh
-./qemu-nixos.sh --fresh-vm
-```
+* Docker is linux: Hence, a running linux system is needed
+* Linux on MacOS: Some virtualisation solution is needed
+* Performance: virtualisation requires acceleration
+* Access docker from MacOS: daemon socket must be exposed to MacOS
+* Access exposed docker ports: Dynamically forward linux to MacOS ports
+* Bind-mount host filesystem: mount MacOS filesystem into linux VM
 
-The second script invokes the actual installation of NixOS onto the mounted disk  image.
-```sh
-./qemu-nixos.sh --full-setup
-```
-It partitions the disk image and runs the nixos installer, followed by a reboot of the VM. The installation is done via SSH, after setting the "nixos" user's password via QEMU's monitoring console, to allow for ssh login the running VM.
+Additionally, the system should be robust and simple to run. Hence,
+installation and updates must be automated as much as possible.
 
-After the initial installation, the VM can be started with
-```sh
-./qemu-nixos.sh --start
-```
-and login is provided for user "nixos" and password "nixos".
+The corner stones of this solutions are QEMU and NixOS:
 
-## Installation
+* QEMU is a robust, widely-used, open-source hypervisor
+* QEMU performs on Intel and M1 by leveraging apple's hypervisor framework
+* NixOS's declarative approach is ideal to automate many aspects
+* NixOS's reproducibility is key for simple installations
 
-The initial boot process works with two separate script invocations.
+The following sections detail challenges encountered.
 
-The first script creates a fresh qcow disk image (erasing a previous one!)
-and installs a base configuration using the nixos installer. The script
-reboots the vm after installation and leaves it in a ready state.
+## Docker Port-Forwarding
 
-```sh
-qemu-nixos --fresh
-```
+Port forwarding from the QEMU VM to MacOS is crucial. It is required to start
+and stop containers, but also to interact with the dockerised applications.
+This section describes the three types of port forwards used by the system.
 
-The second script deploys the actual configuration enabling docker with
-all necessary services to expose ports to the host system and to mount
-files from the /tmp directory. Applying this configuration is as simple as:
+Firstly, the docker daemon connection must be forwarded to interact with docker
+from MacOS (e.g. start/stop/inspection of containers). Forwarding the docker
+daemon is straightforward as the docker daemon port is statically known. Hence
+the port forward can be activated on start of QEMU.
 
-```sh
-colmena apply
-```
+Secondly, the ports exposed by docker containers need to be forwarded to use
+the dockerised applications from MacOS. This is more challenging since ports
+appear and disappear as containers are started and stopped. Forwarding
+pre-defined port ranges seems sub-optimal and cause conflicts on the host
+system. Hence, forwarding those ports must be dynamic. Fortunately,
+manipulation of host-forwards is possible at runtime using QEMU's monitor
+interface. To this end, a service listens to `docker events` and synchronises
+the ports exposed by docker with the port forwarding table of QEMU.
+
+Thirdly, the QEMU monitor connection on MacOS is made accessible within the VM.
+This allows for running the port forward sync service in linux and avoid
+additional complexity on the MacOS side. This is a "guest-forward" that flows
+in the opposite direction to the above "host-forwards". Fortunately, this 
+guest-forward is static and can be established on start of QEMU.
+
+## Docker Volume Mounts
+
+Volume mounts are also crucial. They are often used to provide configurations
+to dockerised applications or the keep persistent state out of the containers.
+The challenge is to mount files and folders from the MacOS filesystem. Without
+special handling, the docker daemon mounts files from the linux VM. That would not
+include files and folder created in MacOS.
+
+Fortunately, recent development added the "9p" protocol to mount the MacOS
+filesystem into the guest VM. This works well for non-system folder like
+`/Users`. The current solutions mounts the entire `/Users` folder, but more
+granular scheme could be envisioned to improve isolation between the guest and
+the host. In general a static list of accessible folders seems sufficient
+though.
+
+### Volume Bind Mounts in /tmp
+
+Unfortunately, mounting `/tmp` is not that straightforward.
+The problem is that there are two competing use cases:
+
+* On the one hand, mounting temporary configuration or data folders into
+docker containers is a quite common pattern for local development setups.
+That requires mounting the hosts `/tmp` into the guest.
+
+* On the other hand, the guest OS uses `/tmp` for various purposes, including
+the creation of e.g. unix domain sockets. Unfortunately such special files
+cannot be created in a "9p" (or other host mounted) filesystem. Hence, `/tmp`
+should not be mounted from the host into the guest.
+
+A solution to this dilemma is to mount MacOS's `/tmp` to an alternate
+location like `/.tmp`. Then every file or folder is bind-mounted _individually_
+from the alternate temporary folder to the actual temporary folder. As a result,
+we have:
+
+* all standard files from MacOS are accessible to the linux VM
+* linux can create any file in `/tmp` as it is not in a 9p mounted filesystem
+* name collisions should not be an issue since `/tmp` is anyway a shared namespace
+
+The challenge to this solution is that temporary files come and go. Hence a
+service is needed to dynamically mirror MacOS's temporary files using bind
+mounts. Moreover, the bind mount must happen before the docker daemon attempts
+to bind mount a file, because that would create it instead.
+
+Unfortunately, 9p currently does not provide `inotify` functionality. However,
+instead of polling for changes, we can use `docker events` as triggers since
+the syncing has to be up-to-date only before a container is started.
 
