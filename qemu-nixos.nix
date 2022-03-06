@@ -76,13 +76,41 @@ let
   -virtfs local,path=/tmp,security_model=mapped-xattr,mount_tag=host_tmp
   '';
 
+  qemu-nixos-install = pkgs.writeShellScriptBin "qemu-nixos-install" ''
+    echo "## Create fresh disk image"
+    rm -i ${diskImg}
+    ${pkgs.qemu}/bin/qemu-img create -f qcow2 ${diskImg} ${diskSize}
+
+    echo "## Start VM in background and wait for SSH access"
+    qemu-nixos &
+    ssh-keygen -R "[localhost]:$SSH_PORT"
+    waitForSsh vm
+
+    echo "## Setup login password"
+    SETUP_PW=asdf
+    qemu-type "passwd"; sleep 1
+    qemu-type $SETUP_PW; sleep 1
+    qemu-type $SETUP_PW; sleep 1
+    PASSWORD=$SETUP_PW ssh-copy-id-password vm
+
+    echo "## Partition and Install nixos"
+    scp vm-partitioning.sh vm-install.sh nixos@vm:
+    ssh nixos@vm "sudo bash ./vm-partitioning.sh"
+    ssh nixos@vm "sudo bash ./vm-install.sh"
+
+    echo "## Installation completed; shutdown VM"
+    qemu-pipe <<< "quit"
+  '';
+
   qemu-nixos = pkgs.writeShellScriptBin "qemu-nixos" ''
     set -euo pipefail
     if [ "''${1:-}" == "--fresh" ]; then
-      echo "Remove disk image and create new one"
-      rm ${diskImg}
-      ssh-keygen -R "[localhost]:$SSH_PORT"
-      ${pkgs.qemu}/bin/qemu-img create -f qcow2 ${diskImg} ${diskSize}
+      qemu-nixos-install
+    elif [ ! -e ${diskImg} ]; then
+      echo "there is no disk image at ${diskImg}"
+      echo "disk image will be created"
+      read -p "press any key to continue or ctrl-c to abort"
+      qemu-nixos-install
     fi
     ARGS=(
       ${machineDef}
@@ -105,5 +133,5 @@ let
 in
   pkgs.symlinkJoin {
     name = "qemu-nixos";
-    paths = [qemuTools qemu-nixos];
+    paths = [qemuTools qemu-nixos qemu-nixos-install];
   }

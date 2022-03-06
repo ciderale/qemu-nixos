@@ -5,29 +5,9 @@ This repository experiments QEMU configurations for running NixOS as local VM. T
 
 ## Normal start
 
-* Start the vm with `./qemu-nixos.sh --start`
+* Start the vm with `qemu-nixos`
 * Enter the vm with `ssh vm`
 * Docker is available on port `tcp://` which is configured by direnv
-
-## Installation
-
-The initial boot process works with two separate script invocations.
-
-The first script creates a fresh qcow disk image (erasing a previous one!)
-and installs a base configuration using the nixos installer. The script
-reboots the vm after installation and leaves it in a ready state.
-
-```sh
-./qemu-nixos.sh --fresh
-```
-
-The second script deploys the actual configuration enabling docker with
-all necessary services to expose ports to the host system and to mount
-files from the /tmp directory. Applying this configuration is as simple as:
-
-```sh
-colmena apply
-```
 
 ### Known installation caveats
 
@@ -47,12 +27,13 @@ colmena apply
 * [X] Run docker in NixOS and provide it to the host system
 * [X] Docker port forwarding to host sytem
 * [X] Volume mount of /tmp (or files in there)
+* [X] nixify the qemu-nixos.sh configuration script
 * [ ] tmp mounter: remove stale directory if host tmp is a file
 * [ ] adapt configuration to have same ens2/3 interface on intel&m1
-* [ ] nixify the qemu-nixos.sh configuration script
 * [ ] keep nixpkgs of nixos-install and colmena in sync
 
-## Details
+
+## Old Details (to be removed)
 
 The first script creates a fresh qcow disk image (erasing a previous one!)
 and then booting a VM with the NixOS installation CD and the disk image.
@@ -71,4 +52,24 @@ After the initial installation, the VM can be started with
 ./qemu-nixos.sh --start
 ```
 and login is provided for user "nixos" and password "nixos".
+
+## Installation
+
+The initial boot process works with two separate script invocations.
+
+The first script creates a fresh qcow disk image (erasing a previous one!)
+and installs a base configuration using the nixos installer. The script
+reboots the vm after installation and leaves it in a ready state.
+
+```sh
+qemu-nixos --fresh
+```
+
+The second script deploys the actual configuration enabling docker with
+all necessary services to expose ports to the host system and to mount
+files from the /tmp directory. Applying this configuration is as simple as:
+
+```sh
+colmena apply
+```
 
