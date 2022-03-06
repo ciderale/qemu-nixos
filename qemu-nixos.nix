@@ -2,6 +2,9 @@
   pkgs,
   pkgsLinux,
   monitor-socket ? null,
+  monitor-in-vm,
+  ssh-port,
+  docker-port,
   nographics ? false,
   diskImg ? "/tmp/disk.img",
   diskSize ? "100G",
@@ -26,10 +29,9 @@ let
   monitor = optionalString (monitor-socket != null) "-monitor unix:${monitor-socket},server,nowait";
 
   forwards = concatStringsSep "," [
-    "hostfwd=tcp::$SSH_PORT-:22"
-    "hostfwd=tcp::$DOCKER_PORT-:2375"
-    #"guestfwd=tcp:$QEMU_MONITOR_IN_VM-cmd: socat - unix-connect:$QEMU_MONITOR_SOCKET"
-    "guestfwd=tcp:$QEMU_MONITOR_IN_VM-cmd: qemu-monitor"
+    "hostfwd=tcp::${toString ssh-port}-:22"
+    "hostfwd=tcp::${toString docker-port}-:2375"
+    "guestfwd=tcp:${monitor-in-vm}-cmd: qemu-monitor"
   ];
   network = ''-device e1000,netdev=net0 -netdev "user,id=net0,${forwards}"'';
 
@@ -83,7 +85,7 @@ let
 
     echo "## Start VM in background and wait for SSH access"
     qemu-nixos &
-    ssh-keygen -R "[localhost]:$SSH_PORT"
+    ssh-keygen -R "[localhost]:${toString ssh-port}"
     waitForSsh vm
 
     echo "## Setup login password"

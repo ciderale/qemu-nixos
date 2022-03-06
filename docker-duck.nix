@@ -1,5 +1,7 @@
 { config, lib, pkgs, modulesPath, ... }:
+with lib;
 let
+  cfg = config.docker-duck;
   mounter = pkgs.writeShellScriptBin "mounter" ''
       # create bind mounts
       for i in $(comm -1 -3 <(ls -1 /tmp) <(ls /.tmp/)); do
@@ -16,10 +18,16 @@ let
        ${pkgs.docker}/bin/docker events | while read; do ${mounter}/bin/mounter; done
   '';
   qemu-tools = pkgs.callPackage ./qemu-tools.nix {
-    pkgs = pkgs; qemu-monitor-address = "tcp:10.0.2.11:4444";
+    qemu-monitor-address = "tcp:${cfg.qemu-monitor}";
   };
   portmapperd = pkgs.writeShellScriptBin "portmapperd" (builtins.readFile ./portmapperd.sh);
 in
+  {
+    options.docker-duck.qemu-monitor = mkOption {
+      type = types.str;
+      description = "the ip and port to reach the qemu monitor connection";
+    };
+    config =
 
 {
 
@@ -71,4 +79,5 @@ in
       };
    };
 
-}
+ };
+ }

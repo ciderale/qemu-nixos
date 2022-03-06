@@ -1,4 +1,4 @@
-inputs: {
+inputs: config: {
   meta = {
     nixpkgs = import inputs.nixpkgs {
       system = builtins.replaceStrings ["darwin"] ["linux"] builtins.currentSystem;
@@ -7,13 +7,10 @@ inputs: {
   qemu-nixos = {
     deployment = {
       targetHost = "localhost";
-      targetPort = 60022;
+      targetPort = config.ssh-port;
       targetUser = "root";
       buildOnTarget = true;
     };
-    imports = [
-      ./configuration.nix
-      ./docker-duck.nix
-    ];
+    imports = config.modules;
   };
 }

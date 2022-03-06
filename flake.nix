@@ -12,15 +12,30 @@
     colmena.inputs.flake-compat.follows = "flake-compat";
   };
 
-  outputs = inputs@{ self, nixpkgs, flake-utils, ... }: {
-    colmena = import ./colmena.nix inputs;
-    nixosConfigurations.docker-duck = nixpkgs.lib.nixosSystem {
-      system = "aarch64-linux"; # how to stay multi-architecture?
-      modules = [
-        ./configuration.nix
-        ./docker-duck.nix
-        { documentation.nixos.enable = false; }
-      ];
+  outputs = inputs@{ self, nixpkgs, flake-utils, ... }: let
+    qemu-monitor = "10.0.2.11:60066";
+    docker-port = 62375;
+    ssh-port = 60022;
+    modules = [
+      ./configuration.nix
+      ./docker-duck.nix
+      {
+        documentation.nixos.enable = false;
+        docker-duck.qemu-monitor = qemu-monitor;
+      }
+    ];
+  in {
+    # TODO: combine colmena/nixosConfigurations/multi-arch
+    colmena = import ./colmena.nix inputs {
+      inherit modules ssh-port;
+    };
+    nixosConfigurations.docker-duck-aarch64 = nixpkgs.lib.nixosSystem {
+      system = "aarch64-linux";
+      inherit modules;
+    };
+    nixosConfigurations.docker-duck-x86_64 = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      inherit modules;
     };
   } // flake-utils.lib.eachDefaultSystem (system:
   let
@@ -28,31 +43,26 @@
     linuxSystem = builtins.replaceStrings ["darwin"] ["linux"] system;
     pkgsLinux = nixpkgs.legacyPackages.${linuxSystem};
 
-    SSH_PORT=self.colmena.qemu-nixos.deployment.targetPort;
-    DOCKER_PORT=62375;
-    QEMU_MONITOR_IN_VM = "10.0.2.11:60066";
-
     vmssh = import ./ssh.nix pkgs ''
       Host vm
         Hostname localhost
-        Port ${toString SSH_PORT}
+        Port ${toString ssh-port}
         User nixos
         UserKnownHostsFile=/dev/null
         StrictHostKeyChecking=no
     '';
-    colmenaX = inputs.colmena.packages."${system}".colmena;
-
     qemuNixos = pkgs.callPackage ./qemu-nixos.nix {
-      inherit pkgsLinux;
+      inherit pkgsLinux ssh-port docker-port;
       monitor-socket = "/tmp/qemu-monitor-socket";
+      monitor-in-vm = qemu-monitor;
       qemu-args = "";
     };
 
-  in rec {
+    colmena = inputs.colmena.packages."${system}".colmena;
+  in {
     devShell = pkgs.mkShell {
-      buildInputs = with pkgs; [qemuNixos vmssh colmenaX docker];
-      inherit SSH_PORT DOCKER_PORT QEMU_MONITOR_IN_VM system;
-      DOCKER_HOST = "tcp://localhost:${toString DOCKER_PORT}";
+      buildInputs = [qemuNixos vmssh colmena pkgs.docker];
+      DOCKER_HOST = "tcp://localhost:${toString docker-port}";
     };
   });
 }
