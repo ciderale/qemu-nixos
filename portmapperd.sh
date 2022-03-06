@@ -1,10 +1,9 @@
 set -euo pipefail
 
 VERBOSE=${VERBOSE:-1}
-STATIC_PORTS="2222 2375"
+STATIC_PORTS="22 2375"
 
 STATIC_PORTS_GREP=$(echo $STATIC_PORTS | sed -e 's/\([^ ]*\)/^\1$/g;s/ /\\|/g')
-QEMU_DELAY=0.2
 
 function debug() {
   LEVEL=$1; shift
@@ -21,7 +20,9 @@ function active_ports() {
 }
 
 function qemu_ports() {
-  qemu-cmd "info usernet" | grep HOST_FORWARD | awk '{ print $4 }'
+  # list guest ports, not host ports
+  # host ports maybe configurable while they are not within the VM
+  qemu-cmd "info usernet" | grep HOST_FORWARD | awk '{ print $6 }'
 }
 
 function make_qemu_hostfwds() {
