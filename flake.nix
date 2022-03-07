@@ -4,6 +4,7 @@
   inputs = {
     # use 9p patched qemu branch: https://github.com/NixOS/nixpkgs/pull/162243/commits
     nixpkgs.url = "github:nixos/nixpkgs/?rev=99a306df0220bbbe6b5a12c2d6434e5d51494275";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
@@ -59,9 +60,13 @@
     };
 
     colmena = inputs.colmena.packages."${system}".colmena;
+    # docker has an issue in the branch of patched qemu
+    docker = inputs.nixpkgs-unstable.legacyPackages.${system}.docker;
   in {
     devShell = pkgs.mkShell {
-      buildInputs = [qemuNixos vmssh colmena pkgs.docker];
+      buildInputs = [qemuNixos vmssh docker];
+      # colmena currently needed, unless local deployments are made
+      # buildInputs = [qemuNixos vmssh docker colmena];
       DOCKER_HOST = "tcp://localhost:${toString docker-port}";
     };
   });
