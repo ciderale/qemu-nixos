@@ -98,7 +98,9 @@ let
     echo "## Partition and Install nixos"
     scp vm-partitioning.sh vm-install.sh nixos@vm:
     ssh nixos@vm "sudo bash ./vm-partitioning.sh"
-    ssh nixos@vm "sudo bash ./vm-install.sh"
+    PATH_TO_FLAKE=$(pwd)
+    echo $PATH_TO_FLAKE
+    ssh nixos@vm "sudo bash ./vm-install.sh $PATH_TO_FLAKE"
 
     echo "configure authorized key in new installation"
     SSH_DIR=/home/nixos/.ssh
