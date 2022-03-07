@@ -31,9 +31,11 @@ let
   forwards = concatStringsSep "," [
     "hostfwd=tcp::${toString ssh-port}-:22"
     "hostfwd=tcp::${toString docker-port}-:2375"
+    # could be done with gateway address
     "guestfwd=tcp:${monitor-in-vm}-cmd: qemu-monitor"
   ];
-  network = ''-device e1000,netdev=net0 -netdev "user,id=net0,${forwards}"'';
+
+  network = ''-device virtio-net-pci,netdev=net0 -netdev "user,id=net0,${forwards}"'';
 
   graphics = if nographics then "-nographic" else ''
     -display default,show-cursor=on -device usb-tablet # show cursor
