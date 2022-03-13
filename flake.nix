@@ -40,7 +40,7 @@
     };
   } // flake-utils.lib.eachDefaultSystem (system:
   let
-    pkgs = nixpkgs.legacyPackages.${system};
+    pkgs = inputs.nixpkgs-unstable.legacyPackages.${system};
     linuxSystem = builtins.replaceStrings ["darwin"] ["linux"] system;
     pkgsLinux = nixpkgs.legacyPackages.${linuxSystem};
 
