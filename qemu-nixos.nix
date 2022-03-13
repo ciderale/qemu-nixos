@@ -57,27 +57,34 @@ let
   };
 
   storage = ''
-  # block device controller
-  # https://www.qemu.org/2021/01/19/virtio-blk-scsi-configuration/
-  # https://blogs.oracle.com/linux/post/how-to-emulate-block-devices-with-qemu
-  -device ahci,id=achi0                         #SATA
-  -device virtio-scsi-pci,id=scsi0,num_queues=4 #SCSI
+    # drive definitions
+    -drive id=cd1,file=${nixosIso},format=raw,if=none,media=cdrom,readonly=on
+    -drive id=hd1,file=${diskImg},format=qcow2,media=disk,if=none
 
-  # boot cdrom
-  -drive id=cd1,file=${nixosIso},format=raw,if=none,media=cdrom,readonly=on
-  #-device ide-cd,drive=cd1,id=cd1,bootindex=1 #default
-  #-device ide-cd,id=cd1,bus=achi0.0,drive=cd1,bootindex=1 #SATA
-  -device scsi-hd,drive=cd1,bus=scsi0.0,channel=0,scsi-id=0,lun=1,bootindex=1 #virtio-scsi
+    # device definitions
+    -device virtio-blk-pci,drive=hd1,bootindex=0
+    -device virtio-blk-pci,drive=cd1,bootindex=1
+  '';
+  # some experiments:
+    # check read speed with: hdparm -tT /dev/vda
+    # block device controller
+    # https://www.qemu.org/2021/01/19/virtio-blk-scsi-configuration/
+    # https://blogs.oracle.com/linux/post/how-to-emulate-block-devices-with-qemu
+    #-device ahci,id=achi0                         #SATA
+    #-device virtio-scsi-pci,id=scsi0,num_queues=4 #SCSI
 
-  # block device configuration
-  -drive id=hd1,file=${diskImg},format=qcow2,media=disk,if=none         # default
-  #-device virtio-blk-pci,drive=hd1,id=virtblk0,num-queues=4,bootindex=0 # virtio-blk
-  #-device ide-hd,id=hd1,bus=achi0.1,drive=hd1,bootindex=0               # SATA
-  -device scsi-hd,drive=hd1,bus=scsi0.0,channel=0,scsi-id=0,lun=0,bootindex=0 #virtio-scsi
+    # boot cdrom
+    #-device ide-cd,drive=cd1,id=cd1,bootindex=1 #default
+    #-device ide-cd,id=cd1,bus=achi0.0,drive=cd1,bootindex=1 #SATA
+    #-device scsi-hd,drive=cd1,bus=scsi0.0,channel=0,scsi-id=0,lun=1,bootindex=1 #virtio-scsi
+    #-device virtio-blk-pci,drive=hd1,id=virtblk0,num-queues=1,bootindex=0 # virtio-blk
+    #-device ide-hd,id=hd1,bus=achi0.1,drive=hd1,bootindex=0               # SATA
+    #-device scsi-hd,drive=hd1,bus=scsi0.0,channel=0,scsi-id=0,lun=0,bootindex=0 #virtio-scsi
 
-  # mounting of host file system into guest filesystem
-  -virtfs local,path=/Users,security_model=mapped-xattr,mount_tag=host_users
-  -virtfs local,path=/tmp,security_model=mapped-xattr,mount_tag=host_tmp
+  mounts = ''
+    # mounting of host file system into guest filesystem
+    -virtfs local,path=/Users,security_model=mapped-xattr,mount_tag=host_users
+    -virtfs local,path=/tmp,security_model=mapped-xattr,mount_tag=host_tmp
   '';
 
   qemu-nixos-install = pkgs.writeShellScriptBin "qemu-nixos-install" ''
@@ -133,6 +140,7 @@ let
       ${audio}
       ${qemu-args}
       ${storage}
+      ${mounts}
     )
     ${qemu} "''${ARGS[@]}"
   '';

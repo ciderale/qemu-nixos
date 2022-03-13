@@ -1,4 +1,4 @@
-DEVICE=/dev/sda
+DEVICE=/dev/vda
 # Partitioning
 parted $DEVICE -- mklabel gpt
 parted $DEVICE -- mkpart primary 512MiB -8GiB
