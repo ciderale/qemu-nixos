@@ -5,7 +5,7 @@
   monitor-in-vm,
   ssh-port,
   docker-port,
-  nographics ? false,
+  nographics ? true,
   diskImg ? "/tmp/disk.img",
   diskSize ? "100G",
   qemu-args
@@ -37,7 +37,7 @@ let
 
   network = ''-device virtio-net-pci,netdev=net0 -netdev "user,id=net0,${forwards}"'';
 
-  graphics = if nographics then "-nographic" else ''
+  graphics = if nographics then "-nographic -vga none" else ''
     -display default,show-cursor=on -device usb-tablet # show cursor
   '';
   audio = "-audiodev coreaudio,id=audio -device intel-hda -device hda-output,audiodev=audio";
@@ -134,7 +134,7 @@ let
       ${machineDef}
       ${monitor}
       ${network}
-      --serial stdio
+      # --serial stdio
       -m 16G -smp 4
       ${graphics}
       ${audio}
