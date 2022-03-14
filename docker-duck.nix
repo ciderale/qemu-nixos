@@ -23,11 +23,25 @@ in
     options = [ "trans=virtio,version=9p2000.L,msize=104857600" ];
   };
 
-  fileSystems."/.tmp" = { # mounterd will selectively mount /.tmp/* => /tmp/*
+  # define temp file system of host and vm
+  fileSystems."/.tmp_host" = {
     device = "host_tmp";
     fsType = "9p";
     options = [ "trans=virtio,version=9p2000.L,msize=104857600,nodevmap" ];
-    #neededForBoot = true;
+  };
+  fileSystems."/.tmp_vm" = {
+    device = "tmpfs";
+    fsType = "tmpfs";
+  };
+  # merge host and local filesystem
+  fileSystems."/tmptmp" = {
+    device = "/.tmp_vm:/.tmp_host";
+    fsType = "mergerfs";
+    options = [ "allow_other,use_ino,category.create=epff" ];
+  };
+  fileSystems."/tmp" = {
+    device = "/tmptmp";
+    options = [ "bind" ];
   };
 
   virtualisation.docker = {
@@ -38,23 +52,14 @@ in
     ];
   };
   networking.firewall.allowedTCPPorts = [ 2375 ];
+  networking.enableIPv6 = false;
+  networking.tempAddresses = "disabled";
 
   environment.systemPackages = with pkgs; [
-    docker qemu-tools
+    docker qemu-tools mergerfs
   ];
 
-  systemd.services.dockerTmpMounter = {
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" ];
-      description = "Bind (un-)mount files and directories from host tmp to guest tmp";
-      path = with pkgs; [docker mount umount];
-      serviceConfig = {
-        Type = "simple";
-        User = "root";
-        ExecStart = ''${mounterd}/bin/mounterd'';
-      };
-   };
-
+/*
    systemd.services.dockerPortmapper = {
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
@@ -64,7 +69,8 @@ in
         Type = "simple";
         ExecStart = ''${portmapperd}/bin/portmapperd'';
       };
-   };
+      };
+      */
 
  };
  }
