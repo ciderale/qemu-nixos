@@ -27,10 +27,10 @@ in
         fsType = "9p";
         options = [ "trans=virtio,version=9p2000.L,msize=104857600,nodevmap" ];
       };
-      fileSystems."/.tmp_vm" = {
-        device = "tmpfs";
-        fsType = "tmpfs";
-      };
+
+      systemd.tmpfiles.rules = [
+        "q! /.tmp_vm 1777 root root 10d"
+      ];
       # merge host and local filesystem
       fileSystems."/tmptmp" = {
         device = "/.tmp_vm:/.tmp_host";
