@@ -40,7 +40,7 @@ function static_ports() {
 
 function watch_docker_expose_ports() {
   debug 0 "Starting partmapperd (ignoring $STATIC_PORTS_GREP)"
-  (echo; docker events) | while read line; do
+  (echo; docker events -f "type=container") | while read line; do
     local DOCKER_PORTS=$(active_ports | sort)
     local QEMU_PORTS=$(qemu_ports | static_ports | sort)
 
