@@ -6,7 +6,17 @@ let
     qemu-monitor-address = "tcp:${cfg.qemu-monitor}";
   };
   portmapperd = pkgs.writeShellScriptBin "portmapperd" (builtins.readFile ./portmapperd.sh);
-  mounterd = pkgs.writeShellScriptBin "mounterd" (builtins.readFile ./mounterd.sh);
+  tmp-cleaner = pkgs.writeShellScriptBin "tmp-cleaner" ''
+    function files_in_both_tmp() {
+      comm -1 -2 <(ls /.tmp_vm/) <(ls /.tmp_host/)
+    }
+
+    (echo; docker events) | while read line; do
+      files_in_both_tmp | while read f; do
+        rm -vrf /.tmp_vm/$f
+      done
+    done
+  '';
 in
   {
     options.docker-duck.qemu-monitor = mkOption {
@@ -65,6 +75,17 @@ in
         serviceConfig = {
           Type = "simple";
           ExecStart = ''${portmapperd}/bin/portmapperd'';
+        };
+      };
+
+      systemd.services.dockerTmpCleaner = {
+        wantedBy = [ "multi-user.target" ];
+        after = [ "network.target" ];
+        description = "remove accidentially created items in /.tmp_vm";
+        path = with pkgs; [qemu-tools docker gnugrep gawk];
+        serviceConfig = {
+          Type = "simple";
+          ExecStart = ''${tmp-cleaner}/bin/tmp-cleaner'';
         };
       };
 
